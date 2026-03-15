@@ -1,0 +1,11 @@
+{
+  "name": "scenario_c_perfect_storm",
+  "inject_bots": true,
+  "events": [
+    { "tick": 50,  "type": "CRISIS_TRIGGER",   "intensity": 0.75, "duration_ticks": 100 },
+    { "tick": 55,  "type": "BOT_ACTIVATION",   "botnet_id": 0 },
+    { "tick": 60,  "type": "INJECT_MISINFO",   "agent_id": 0,
+      "emotional_valence": 0.9, "plausibility": 0.75, "via_influencer": 1 },
+    { "tick": 200, "type": "INJECT_FACTCHECK", "effectiveness": 0.65, "platform": "Twitter" }
+  ]
+}

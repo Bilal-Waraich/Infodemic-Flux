@@ -1,0 +1,8 @@
+{
+  "name": "scenario_a_controlled_burn",
+  "inject_bots": false,
+  "events": [
+    { "tick": 10, "type": "INJECT_MISINFO", "agent_id": 0,
+      "emotional_valence": 0.3, "plausibility": 0.5, "via_influencer": 0 }
+  ]
+}
