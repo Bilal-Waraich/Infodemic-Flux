@@ -1,0 +1,8 @@
+# spritesheet  384x256  sprite_size=128  cols=3
+# name  col  row  x  y  w  h
+bot  0  0  0  0  128  128
+exposed  1  0  128  0  128  128
+immune  2  0  256  0  128  128
+infected  0  1  0  128  128  128
+recovered  1  1  128  128  128  128
+susceptible  2  1  256  128  128  128
