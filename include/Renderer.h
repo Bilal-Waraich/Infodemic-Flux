@@ -1,66 +1,138 @@
-// Renderer.h — SFML visualiser. All agents drawn in ≤6 draw calls via VertexArray batching.
-//
-// Batching: agents of the same belief state share one sf::Texture and are grouped into one
-// VertexArray. Six states → six draw calls max, regardless of agent count.
-// Individual sf::Sprite draws would cost ~8 ms/frame in GPU state-change overhead alone.
+// Renderer.h — country-mode SFML visualiser.
+// Layout: [200px country+scenario list] [720px sim panel] [360px story panel]
 #pragma once
 #include <SFML/Graphics.hpp>
 #include <array>
 #include <vector>
+#include <string>
+#include <deque>
 #include "World.h"
 #include "Simulation.h"
+#include "CountryBorders.h"
 
-static constexpr int SIR_HISTORY    = 400; // ring buffer depth for dashboard SIR curves
-static constexpr int RENDER_INTERVAL = 10; // ticks between vertex array rebuilds
-static constexpr int DASH_X          = 880;
+// ── Layout ─────────────────────────────────────────────────────────────────
+static constexpr int LEFT_W      = 200;
+static constexpr int SIM_W       = 720;
+static constexpr int RIGHT_W     = 360;
+static constexpr int WIN_W       = 1280;   // LEFT_W + SIM_W + RIGHT_W
+static constexpr int WIN_H       = 720;
+static constexpr int SIR_HISTORY = 300;
 
-// Background fill colours per World Bank region (low alpha so agents remain visible).
-// Order matches CLASS.xlsx region sort: EA&P, E&CA, LA&C, MENA, NA, SA, SSA.
-static const sf::Color REGION_COLOURS[] = {
-    sf::Color(30, 80,  120, 60),
-    sf::Color(80, 50,  120, 60),
-    sf::Color(40, 120,  80, 60),
-    sf::Color(120, 80,  30, 60),
-    sf::Color(60, 100, 140, 60),
-    sf::Color(120, 100, 30, 60),
-    sf::Color(120, 60,  30, 60),
+// ── Visual event log entry ─────────────────────────────────────────────────
+struct VisEvent {
+    std::string msg;
+    uint32_t    tick;
+    bool        is_infection;   // true=red, false=recovery/factcheck/info
+};
+
+// ── Infection pulse ring ───────────────────────────────────────────────────
+struct PulseRing {
+    sf::Vector2f pos;
+    float        radius, max_radius;
+    int          age;
+    static constexpr int LIFETIME = 18;
 };
 
 class Renderer {
 public:
     Renderer();
+    void init(const World& world, sf::RenderWindow& window,
+              const CountryDef& country);
 
-    // Must be called after sf::RenderWindow is created; caches window size.
-    void init(const World& world, sf::RenderWindow& window);
+    // Recompute positions/polygon when switching country
+    void switchCountry(const World& world, const CountryDef& country);
 
-    void draw(const World& world, const Simulation& sim, sf::RenderWindow& window);
+    // Clear visual state when a scenario is loaded (same country, new sim state)
+    void resetForScenario();
+
+    void draw(const World& world, const Simulation& sim,
+              sf::RenderWindow& window);
+
+    void updateAgentMovement(const World& world, int ticks_per_frame);
+    void spawnPulse(uint32_t agent_id);
+    void logEvent(const VisEvent& ev);
+
+    // Called by main when sim.virality_flash_this_tick is true
+    void triggerViralityFlash();
+
+    // Agent screen positions (sim-panel local, origin = (LEFT_W, 0))
+    std::vector<sf::Vector2f> agent_pos;
+    std::vector<sf::Vector2f> agent_target;
+
+    int  selected_country  = 0;
+    int  selected_scenario = 0;   // 0=none, 1-3 = scenario index
+    bool paused            = false;
+
+    static const char* agentName(uint32_t id);
+
+    // Country click: returns country index (0..N-1) or -1
+    int handleClick(float mx, float my) const;
+    // Scenario click: returns 0-2 or -1
+    int handleScenarioClick(float mx, float my) const;
 
 private:
-    void computeZoneRects(const World& world);
-    std::vector<sf::FloatRect>  zone_rects;
-    std::vector<sf::Vector2f>   agent_positions;
+    // ── Map & polygon ──────────────────────────────────────────────────
+    sf::Texture  map_texture;
+    bool         map_loaded = false;
 
-    bool loadSprites();
-    std::array<sf::Texture, 6> state_textures;
-    std::array<bool, 6>        texture_loaded = {};
-    bool any_sprites_loaded = false;
+    CountryDef   current_country;
+    std::vector<sf::Vector2f> polygon_screen;
 
-    // Each agent is a 4-vertex Quad when sprites are loaded, or a single Point otherwise.
-    void rebuildAgentVertices(const World& world);
-    sf::VertexArray vertex_array;
+    sf::Vector2f geoToPanel(float lon, float lat) const;
+    void buildPolygonScreen();
+    bool insidePolygon(sf::Vector2f p) const;
 
-    int since_rebuild = 0;
+    sf::IntRect  map_crop;
+    void computeMapCrop();
 
-    void drawZoneBackgrounds(const World& world, sf::RenderWindow& window);
-    void drawZoneBorders(const World& world, sf::RenderWindow& window);
-    void drawDashboard(const Simulation& sim, sf::RenderWindow& window);
+    // ── Agent sprites ─────────────────────────────────────────────────
+    sf::Texture  sprite_sheet;
+    bool         sprites_loaded = false;
+    static sf::IntRect spriteRect(BeliefState s, bool is_bot);
 
-    struct SIRSample { int susceptible, exposed, infected, recovered; };
+    // ── Agent positions ────────────────────────────────────────────────
+    void initAgentPositions(const World& world);
+    sf::Vector2f randomInPolygon(std::mt19937& rng);
+
+    // ── Platform / state colours ──────────────────────────────────────
+    static sf::Color platformColor(Platform p);
+    static sf::Color stateColor(BeliefState s);
+    static const char* platformLabel(Platform p);
+
+    // ── Movement ──────────────────────────────────────────────────────
+    std::mt19937       move_rng;
+    std::vector<int>   target_cooldown;
+
+    // ── Pulse rings ───────────────────────────────────────────────────
+    std::vector<PulseRing> pulses;
+    void updateAndDrawPulses(sf::RenderWindow& window);
+
+    // ── Virality flash ────────────────────────────────────────────────
+    float virality_flash_alpha = 0.f;   // fades from 120 → 0 over ~20 frames
+
+    // ── SIR ring-buffer ───────────────────────────────────────────────
+    struct SIRSample { int s, e, i, r; };
     SIRSample sir_buf[SIR_HISTORY] = {};
-    int sir_head  = 0;
-    int sir_count = 0;
+    int sir_head = 0, sir_count = 0;
 
+    // ── Story log ─────────────────────────────────────────────────────
+    std::deque<VisEvent> event_log;   // newest at front, max 14
+
+    // ── Draw sub-functions ────────────────────────────────────────────
+    void drawLeftPanel(const std::vector<CountryDef>& defs,
+                       sf::RenderWindow& window);
+    void drawSimPanel(const World& world, const Simulation& sim,
+                      sf::RenderWindow& window);
+    void drawRightPanel(const World& world, const Simulation& sim,
+                        sf::RenderWindow& window);
+
+    // ── Font ──────────────────────────────────────────────────────────
     sf::Font font;
-    bool font_loaded = false;
-    unsigned int win_w = 1280, win_h = 720;
+    bool     font_loaded = false;
+
+    // ── Left panel scroll & buttons ───────────────────────────────────
+    int  country_scroll = 0;
+    static constexpr int VISIBLE_COUNTRIES = 12;
+    std::vector<sf::FloatRect> country_button_rects;
+    std::vector<sf::FloatRect> scenario_button_rects;
 };

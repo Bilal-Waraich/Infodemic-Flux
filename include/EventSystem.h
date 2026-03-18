@@ -20,21 +20,20 @@ enum class EventType {
 
 // Parameters stored in flat string-keyed maps so the JSON loader can fill them
 // without knowing each EventType's schema in advance.
-struct SimEvent {
+struct LegacySimEvent {
     uint32_t    trigger_tick;
     EventType   type;
     std::unordered_map<std::string, float>       float_params;
     std::unordered_map<std::string, std::string> string_params;
 
-    // Greater-than makes std::priority_queue a min-heap on trigger_tick.
-    bool operator>(const SimEvent& o) const {
+    bool operator>(const LegacySimEvent& o) const {
         return trigger_tick > o.trigger_tick;
     }
 };
 
 class EventSystem {
 public:
-    void schedule(SimEvent e);
+    void schedule(LegacySimEvent e);
 
     // Must be called before Simulation::tick() each step.
     void processAll(Simulation& sim, uint32_t current_tick);
@@ -46,9 +45,9 @@ public:
 
 private:
     std::priority_queue<
-        SimEvent,
-        std::vector<SimEvent>,
-        std::greater<SimEvent>> event_queue;
+        LegacySimEvent,
+        std::vector<LegacySimEvent>,
+        std::greater<LegacySimEvent>> event_queue;
 
     Platform    stringToPlatform(const std::string& s) const;
 

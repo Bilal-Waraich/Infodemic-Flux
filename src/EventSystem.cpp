@@ -9,7 +9,7 @@
 #include <algorithm>
 #include <stdexcept>
 
-void EventSystem::schedule(SimEvent e) {
+void EventSystem::schedule(LegacySimEvent e) {
     event_queue.push(std::move(e));
 }
 
@@ -17,7 +17,7 @@ void EventSystem::processAll(Simulation& sim, uint32_t current_tick) {
     while (!event_queue.empty() &&
            event_queue.top().trigger_tick <= current_tick)
     {
-        SimEvent e = event_queue.top();
+        LegacySimEvent e = event_queue.top();
         event_queue.pop();
 
         switch (e.type) {
@@ -201,7 +201,7 @@ void EventSystem::loadFromJSON(const std::string& path) {
             continue;
         }
 
-        SimEvent e;
+        LegacySimEvent e;
         e.trigger_tick = (uint32_t)extractFloat(obj, "tick");
 
         std::string type_str = extractString(obj, "type");

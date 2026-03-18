@@ -1,0 +1,34 @@
+{
+  "name": "Custom Scenario",
+  "description": "Edit this file to script your own event timeline. Events fire at the specified tick.",
+  "events": [
+    {
+      "tick": 30,
+      "type": "INFLUENCER_SHARE",
+      "zone": "USA",
+      "top_n": 3
+    },
+    {
+      "tick": 60,
+      "type": "CRISIS_TRIGGER",
+      "intensity": 0.70,
+      "duration_ticks": 80
+    },
+    {
+      "tick": 80,
+      "type": "BOT_ACTIVATION",
+      "botnet_id": 0
+    },
+    {
+      "tick": 180,
+      "type": "INJECT_FACTCHECK",
+      "platform": "Twitter",
+      "effectiveness": 0.75
+    },
+    {
+      "tick": 250,
+      "type": "INTERNET_SHUTDOWN",
+      "zone": "USA"
+    }
+  ]
+}

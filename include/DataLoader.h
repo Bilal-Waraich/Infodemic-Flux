@@ -10,9 +10,9 @@ class DataLoader {
 public:
     // Returns an empty World on file-open failure.
     static World buildWorld(const std::string& csv_path, int agents_per_zone);
+    static void spawnAgentsForZone(World& w, Zone& z, int count, std::mt19937& rng);
 
 private:
-    static void spawnAgentsForZone(World& w, Zone& z, int count, std::mt19937& rng);
 
     // Returns Platform::UNKNOWN for unrecognised names.
     static Platform parsePlatform(const std::string& p_str);
