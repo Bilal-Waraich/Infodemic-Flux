@@ -89,7 +89,7 @@ public:
 
     explicit Simulation(World& w);
 
-    // Old network-only tick — preserved, not called in country mode.
+    // Legacy graph-only tick; superseded by tickProximity() which runs both graph and proximity spread.
     void tick();
 
     // Hybrid tick used by country mode. Runs all 12 phases.

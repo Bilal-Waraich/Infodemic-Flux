@@ -154,7 +154,7 @@ void Renderer::initAgentPositions(const World& world) {
     std::mt19937 rng(42);
     for (size_t i = 0; i < N; ++i) {
         agent_pos[i]    = randomInPolygon(rng);
-        agent_target[i] = agent_pos[i];  // bots won't move anyway
+        agent_target[i] = agent_pos[i];  // bots are stationary
     }
 }
 
