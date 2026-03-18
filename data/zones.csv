@@ -1,0 +1,8 @@
+country,code,region,literacy_score,press_freedom_score,polarization_score,internet_penetration,institutional_trust,platform_1,platform_2,platform_3,p1_pct,p2_pct,p3_pct
+United States,US,North America,0.99,0.85,0.90,0.92,0.40,Facebook,Twitter,YouTube,0.70,0.40,0.80
+Finland,FI,Europe,1.00,0.99,0.15,0.96,0.95,WhatsApp,Facebook,Twitter,0.60,0.50,0.20
+Brazil,BR,South America,0.93,0.50,0.85,0.75,0.30,WhatsApp,Facebook,TikTok,0.90,0.80,0.60
+India,IN,Asia,0.74,0.35,0.88,0.50,0.45,WhatsApp,YouTube,Facebook,0.85,0.60,0.55
+"Dem. Rep. Congo",CD,Africa,0.77,0.20,0.80,0.19,0.25,Facebook,WhatsApp,YouTube,0.50,0.40,0.20
+Singapore,SG,Asia,0.97,0.40,0.30,0.91,0.85,WhatsApp,Facebook,Telegram,0.80,0.70,0.30
+Russia,RU,Europe,1.00,0.15,0.70,0.85,0.35,Telegram,YouTube,TikTok,0.70,0.65,0.50
